@@ -58,5 +58,5 @@ jobs:
           context: .
           push: true
           tags: |
-            faizakbar18/phpnuxbill:${{ env.VERSION }}
-            faizakbar18/phpnuxbill:latest
+            faizakbar18/phpnuxbill-docker:${{ env.VERSION }}
+            faizakbar18/phpnuxbill-docker:latest
