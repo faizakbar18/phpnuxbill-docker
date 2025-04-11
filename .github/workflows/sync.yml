@@ -1,0 +1,37 @@
+name: Sync Fork
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *' # Sync otomatis setiap hari jam 3 pagi UTC (opsional)
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Git
+        run: |
+          git remote add upstream https://github.com/hotspotbilling/phpnuxbill.git
+          git fetch upstream
+          
+          # Checkout master
+          git checkout master
+          
+          # Merge upstream/master tapi abaikan folder .github/workflows/
+          git merge --no-commit --no-ff upstream/master || true
+          
+          # Reset folder workflows agar tetap pakai lokal
+          git restore --source=HEAD --staged --worktree .github/workflows
+
+          # Cek apakah ada perubahan
+          if git diff --cached --quiet; then
+            echo "No changes to sync"
+          else
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git commit -m "Sync upstream without overwriting workflows"
+            git push origin master
+          fi
