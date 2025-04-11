@@ -1,0 +1,21 @@
+name: Sync Fork
+
+on:
+  schedule:
+    - cron: '0 * * * *' # Setiap jam cek update
+  workflow_dispatch: # Bisa dijalankan manual juga
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout your repo
+        uses: actions/checkout@v4
+
+      - name: Sync with upstream
+        uses: repo-sync/github-sync@v2
+        with:
+          source_repo: 'hotspotbilling/phpnuxbill'
+          source_branch: 'master'
+          destination_branch: 'master'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
