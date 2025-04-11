@@ -11,6 +11,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -24,6 +26,7 @@ jobs:
         run: |
           VERSION=$(jq -r .version version.json)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "::set-output name=version::$VERSION"
           echo "Release version: $VERSION"
 
       - name: Create GitHub Release
@@ -58,5 +61,5 @@ jobs:
           context: .
           push: true
           tags: |
-            faizakbar18/phpnuxbill-docker:${{ env.VERSION }}
+            faizakbar18/phpnuxbill-docker:${{ needs.release.outputs.version }}
             faizakbar18/phpnuxbill-docker:latest
