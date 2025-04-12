@@ -29,11 +29,54 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Release version: $VERSION"
 
+      - name: Generate Pretty Changelog
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ || echo "")
+          
+          if [ -z "$PREVIOUS_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"%s")
+          else
+            COMMITS=$(git log "$PREVIOUS_TAG"..HEAD --pretty=format:"%s")
+          fi
+
+          FEATURES=""
+          FIXES=""
+          CHORES=""
+          OTHERS=""
+
+          while read -r line; do
+            if [[ "$line" == feat:* ]]; then
+              FEATURES+="- ${line#feat: }"$'\n'
+            elif [[ "$line" == fix:* ]]; then
+              FIXES+="- ${line#fix: }"$'\n'
+            elif [[ "$line" == chore:* ]]; then
+              CHORES+="- ${line#chore: }"$'\n'
+            else
+              OTHERS+="- $line"$'\n'
+            fi
+          done <<< "$COMMITS"
+
+          {
+            echo "✨ **Features**"
+            echo "$FEATURES"
+            echo ""
+            echo "🐛 **Bug Fixes**"
+            echo "$FIXES"
+            echo ""
+            echo "🛠 **Chores**"
+            echo "$CHORES"
+            echo ""
+            echo "📦 **Others**"
+            echo "$OTHERS"
+          } > changelog.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ env.VERSION }}
-          name: Release ${{ env.VERSION }}
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
+          body_path: changelog.md
           draft: false
           prerelease: false
         env:
